@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goger Browser - Descargas</title>
+    <style>
+        :root {
+            --goger-blue: #4285F4;
+            --tab-bg: #dee1e6;
+            --active-white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: #f1f3f4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* BARRA DE PESTAÑAS */
+        .tab-bar { background: #dee1e6; display: flex; align-items: center; padding: 8px 10px 0; gap: 4px; border-bottom: 1px solid #ccc; }
+        
+        .tab { 
+            background: #bdc1c6; padding: 8px 15px; border-radius: 8px 8px 0 0; 
+            font-size: 13px; min-width: 140px; cursor: pointer; border: none;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .tab.active { background: white; font-weight: bold; border-bottom: 1px solid white; }
+        
+        .add-tab { background: none; border: none; font-size: 24px; cursor: pointer; padding: 0 15px 5px; color: #5f6368; }
+
+        /* CONTENEDOR DE VISTAS */
+        #main-view { flex-grow: 1; background: white; position: relative; }
+        .view { display: none; width: 100%; height: 100%; flex-direction: column; }
+        .view.active { display: flex; }
+
+        /* INICIO GOGER */
+        .home { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .logo { font-size: 70px; font-weight: bold; margin-bottom: 30px; }
+        .logo span:nth-child(1) { color: #4285F4; }
+        .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; }
+        .logo span:nth-child(4) { color: #34A853; }
+        .logo span:nth-child(5) { color: #EA4335; }
+
+        .search-box { 
+            width: 90%; max-width: 600px; padding: 15px 25px; 
+            border-radius: 30px; border: 1px solid #dfe1e5; outline: none; 
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+        }
+
+        /* SECCIÓN DE DESCARGAS */
+        .downloads-list { padding: 40px; overflow-y: auto; height: 100%; }
+        .download-item {
+            display: flex; align-items: center; padding: 15px;
+            border-bottom: 1px solid #eee; gap: 20px;
+        }
+        .file-icon { font-size: 30px; }
+        .file-info { flex-grow: 1; }
+        .file-name { font-weight: bold; color: #333; }
+        .file-progress { width: 100%; height: 8px; background: #eee; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--goger-blue); }
+
+        /* JUEGO DEL DURAZNO */
+        .game-screen { 
+            display: none; flex-direction: column; align-items: center; 
+            justify-content: center; height: 100%; background: #fffaf0; 
+        }
+        .peach { font-size: 100px; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        .peach:active { transform: scale(0.9); }
+        .bar-container { width: 250px; height: 20px; background: #eee; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        .bar { width: 0%; height: 100%; background: #ff8c00; }
+
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="tab-bar" id="tabBar">
+        <button class="add-tab" onclick="createNewTab()">+</button>
+    </div>
+
+    <div id="main-view"></div>
+
+    <script>
+        let tabIdCounter = 0;
+
+        function createNewTab() {
+            tabIdCounter++;
+            const id = tabIdCounter;
+            
+            // Pestaña
+            const btn = document.createElement('button');
+            btn.className = 'tab';
+            btn.id = `btn-${id}`;
+            btn.onclick = () => switchTab(id);
+            btn.innerHTML = `<span>Nueva pestaña</span> <b onclick="event.stopPropagation(); closeTab(${id})">×</b>`;
+            document.getElementById('tabBar').insertBefore(btn, document.querySelector('.add-tab'));
+
+            // Vista
+            const view = document.createElement('div');
+            view.className = 'view';
+            view.id = `view-${id}`;
+            view.innerHTML = `
+                <div class="home" id="home-${id}">
+                    <div class="logo"><span>G</span><span>o</span><span>g</span><span>e</span><span>r</span></div>
+                    <input type="text" class="search-box" placeholder="Busca en Bing o escribe 'descargas'..." onkeypress="handleInput(event, ${id})">
+                </div>
+                <iframe id="frame-${id}"></iframe>
+                <div class="game-screen" id="game-${id}">
+                    <h2>🔌 Modo Sin WiFi</h2>
+                    <p>Pela el durazno mientras vuelve la red</p>
+                    <div class="peach" onclick="peelPeach(${id})">🍑</div>
+                    <div class="bar-container"><div class="bar" id="bar-${id}"></div></div>
+                </div>
+                <div class="downloads-list" id="downloads-${id}" style="display:none;">
+                    <h1 style="margin-bottom:20px;">Descargas</h1>
+                    <div class="download-item">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">Goger_Setup.exe</div>
+                            <div class="file-progress"><div class="progress-fill" style="width: 100%"></div></div>
+                            <small>Completado - 45.2 MB</small>
+                        </div>
+                    </div>
+                    <div class="download-item">
+                        <div class="file-icon">🍑</div>
+                        <div class="file-info">
+                            <div class="file-name">Imagen_Durazno_HD.png</div>
+                            <div class="file-progress"><div class="progress-fill" style="width: 35%"></div></div>
+                            <small>Descargando... (1.2 MB / 4.0 MB)</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-view').appendChild(view);
+            switchTab(id);
+        }
+
+        function handleInput(event, id) {
+            if (event.key === 'Enter') {
+                const query = event.target.value.toLowerCase();
+                const home = document.getElementById(`home-${id}`);
+                const tabTitle = document.querySelector(`#btn-${id} span`);
+
+                if (query === 'descargas' || query === 'downloads') {
+                    // Abrir lista de descargas
+                    home.style.display = 'none';
+                    document.getElementById(`downloads-${id}`).style.display = 'block';
+                    tabTitle.innerText = "Descargas";
+                } 
+                else if (!navigator.onLine) {
+                    // Modo Juego
+                    home.style.display = 'none';
+                    document.getElementById(`game-${id}`).style.display = 'flex';
+                } 
+                else {
+                    // Ir a Bing
+                    const frame = document.getElementById(`frame-${id}`);
+                    tabTitle.innerText = query;
+                    home.style.display = 'none';
+                    frame.style.display = 'block';
+                    frame.src = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+                }
+            }
+        }
+
+        // Lógica Durazno
+        let scores = {};
+        function peelPeach(id) {
+            scores[id] = (scores[id] || 0) + 10;
+            document.getElementById(`bar-${id}`).style.width = scores[id] + "%";
+            if (scores[id] >= 100) { alert("¡Durazno pelado!"); scores[id] = 0; document.getElementById(`bar-${id}`).style.width = "0%"; }
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`view-${id}`).classList.add('active');
+            document.getElementById(`btn-${id}`).classList.add('active');
+        }
+
+        function closeTab(id) {
+            document.getElementById(`view-${id}`).remove();
+            document.getElementById(`btn-${id}`).remove();
+            if(!document.querySelector('.tab')) createNewTab();
+            else switchTab(document.querySelector('.tab').id.split('-')[1]);
+        }
+
+        createNewTab();
+    </script>
+</body>
+</html>

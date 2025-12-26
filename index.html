@@ -3,189 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goger Browser - Descargas</title>
+    <title>Goger - Navegador Oficial</title>
     <style>
         :root {
             --goger-blue: #4285F4;
-            --tab-bg: #dee1e6;
-            --active-white: #ffffff;
+            --goger-red: #EA4335;
+            --goger-yellow: #FBBC05;
+            --goger-green: #34A853;
+            --bg-tabs: #dee1e6;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
 
         body { background: #f1f3f4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* BARRA DE PESTAÑAS */
-        .tab-bar { background: #dee1e6; display: flex; align-items: center; padding: 8px 10px 0; gap: 4px; border-bottom: 1px solid #ccc; }
-        
+        /* BARRA DE PESTAÑAS Y HERRAMIENTAS */
+        .header { background: var(--bg-tabs); display: flex; align-items: center; padding: 8px 10px 0; gap: 5px; border-bottom: 1px solid #ccc; }
+        .tab-container { display: flex; gap: 4px; overflow-x: auto; flex-grow: 1; scrollbar-width: none; }
+        .tab-container::-webkit-scrollbar { display: none; }
+
         .tab { 
-            background: #bdc1c6; padding: 8px 15px; border-radius: 8px 8px 0 0; 
+            background: #bdc1c6; padding: 10px 18px; border-radius: 8px 8px 0 0; 
             font-size: 13px; min-width: 140px; cursor: pointer; border: none;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .tab.active { background: white; font-weight: bold; border-bottom: 1px solid white; }
+        .tab.active { background: white; font-weight: bold; }
         
-        .add-tab { background: none; border: none; font-size: 24px; cursor: pointer; padding: 0 15px 5px; color: #5f6368; }
+        .btn-tool { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px 12px; color: #5f6368; }
 
-        /* CONTENEDOR DE VISTAS */
-        #main-view { flex-grow: 1; background: white; position: relative; }
+        /* ÁREA DE CONTENIDO */
+        #main-content { flex-grow: 1; background: white; position: relative; overflow-y: auto; }
         .view { display: none; width: 100%; height: 100%; flex-direction: column; }
         .view.active { display: flex; }
 
-        /* INICIO GOGER */
+        /* PANTALLA DE INICIO (GOGER HOME) */
         .home { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .logo { font-size: 70px; font-weight: bold; margin-bottom: 30px; }
-        .logo span:nth-child(1) { color: #4285F4; }
-        .logo span:nth-child(2) { color: #EA4335; }
-        .logo span:nth-child(3) { color: #FBBC05; }
-        .logo span:nth-child(4) { color: #34A853; }
-        .logo span:nth-child(5) { color: #EA4335; }
+        .logo { font-size: 70px; font-weight: bold; margin-bottom: 25px; letter-spacing: -3px; user-select: none; }
+        .logo span:nth-child(1) { color: var(--goger-blue); }
+        .logo span:nth-child(2) { color: var(--goger-red); }
+        .logo span:nth-child(3) { color: var(--goger-yellow); }
+        .logo span:nth-child(4) { color: var(--goger-green); }
+        .logo span:nth-child(5) { color: var(--goger-red); }
 
         .search-box { 
-            width: 90%; max-width: 600px; padding: 15px 25px; 
+            width: 90%; max-width: 580px; padding: 15px 25px; 
             border-radius: 30px; border: 1px solid #dfe1e5; outline: none; 
-            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1); font-size: 16px;
         }
 
-        /* SECCIÓN DE DESCARGAS */
-        .downloads-list { padding: 40px; overflow-y: auto; height: 100%; }
-        .download-item {
-            display: flex; align-items: center; padding: 15px;
-            border-bottom: 1px solid #eee; gap: 20px;
-        }
-        .file-icon { font-size: 30px; }
-        .file-info { flex-grow: 1; }
-        .file-name { font-weight: bold; color: #333; }
-        .file-progress { width: 100%; height: 8px; background: #eee; border-radius: 4px; margin-top: 5px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--goger-blue); }
+        /* RESULTADOS INTERNOS DE GOGER */
+        .results-container { padding: 30px; display: none; }
+        .result-item { margin-bottom: 25px; }
+        .result-item h3 { color: #1a0dab; font-size: 18px; cursor: pointer; margin-bottom: 5px; }
+        .result-item p { color: #4d5156; font-size: 14px; line-height: 1.4; }
 
-        /* JUEGO DEL DURAZNO */
-        .game-screen { 
-            display: none; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100%; background: #fffaf0; 
-        }
-        .peach { font-size: 100px; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        /* JUEGO DEL DURAZNO (OFFLINE) */
+        .game-view { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #fffaf0; }
+        .peach { font-size: 100px; cursor: pointer; transition: transform 0.1s; user-select: none; }
         .peach:active { transform: scale(0.9); }
-        .bar-container { width: 250px; height: 20px; background: #eee; border-radius: 10px; margin-top: 20px; overflow: hidden; }
-        .bar { width: 0%; height: 100%; background: #ff8c00; }
+        .bar-bg { width: 200px; height: 15px; background: #eee; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        .bar-fill { width: 0%; height: 100%; background: orange; }
 
-        iframe { width: 100%; height: 100%; border: none; display: none; }
+        /* PANEL DE DESCARGAS */
+        .dl-panel {
+            position: absolute; top: 0; right: 0; width: 300px; height: 100%;
+            background: white; border-left: 1px solid #ddd; box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            display: none; flex-direction: column; z-index: 100;
+        }
     </style>
 </head>
 <body>
 
-    <div class="tab-bar" id="tabBar">
-        <button class="add-tab" onclick="createNewTab()">+</button>
+    <div class="header">
+        <div class="tab-container" id="tabBar"></div>
+        <button class="btn-tool" onclick="addNewTab()">+</button>
+        <button class="btn-tool" onclick="toggleDownloads()">📥</button>
     </div>
 
-    <div id="main-view"></div>
+    <div id="main-content">
+        <div class="dl-panel" id="dlPanel">
+            <div style="padding:15px; border-bottom:1px solid #eee; font-weight:bold; display:flex; justify-content:space-between;">
+                Descargas <span onclick="toggleDownloads()" style="cursor:pointer">×</span>
+            </div>
+            <div id="dlList" style="padding:10px; font-size:12px;">
+                <p id="dlEmpty" style="color:#999; text-align:center; margin-top:20px;">No hay descargas</p>
+            </div>
+        </div>
+    </div>
 
     <script>
-        let tabIdCounter = 0;
+        let tabId = 0;
 
-        function createNewTab() {
-            tabIdCounter++;
-            const id = tabIdCounter;
-            
-            // Pestaña
+        function toggleDownloads() {
+            const p = document.getElementById('dlPanel');
+            p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function addNewTab() {
+            tabId++;
+            const id = tabId;
+
+            // Botón pestaña
             const btn = document.createElement('button');
             btn.className = 'tab';
-            btn.id = `btn-${id}`;
+            btn.id = `tab-btn-${id}`;
             btn.onclick = () => switchTab(id);
             btn.innerHTML = `<span>Nueva pestaña</span> <b onclick="event.stopPropagation(); closeTab(${id})">×</b>`;
-            document.getElementById('tabBar').insertBefore(btn, document.querySelector('.add-tab'));
+            document.getElementById('tabBar').appendChild(btn);
 
-            // Vista
+            // Vista pestaña
             const view = document.createElement('div');
             view.className = 'view';
             view.id = `view-${id}`;
             view.innerHTML = `
                 <div class="home" id="home-${id}">
                     <div class="logo"><span>G</span><span>o</span><span>g</span><span>e</span><span>r</span></div>
-                    <input type="text" class="search-box" placeholder="Busca en Bing o escribe 'descargas'..." onkeypress="handleInput(event, ${id})">
+                    <input type="text" class="search-box" placeholder="¿Qué quieres buscar?" onkeypress="handleSearch(event, ${id})">
+                    <p style="margin-top:20px; color:#777; font-size:14px;">El buscador más rápido de la red</p>
                 </div>
-                <iframe id="frame-${id}"></iframe>
-                <div class="game-screen" id="game-${id}">
-                    <h2>🔌 Modo Sin WiFi</h2>
-                    <p>Pela el durazno mientras vuelve la red</p>
+                <div class="results-container" id="results-${id}">
+                    <h2 style="margin-bottom:20px; font-size:16px;">Resultados para: <span id="q-text-${id}"></span></h2>
+                    <div id="res-list-${id}"></div>
+                </div>
+                <div class="game-view" id="game-${id}">
+                    <h2>⚠️ Sin Internet</h2>
                     <div class="peach" onclick="peelPeach(${id})">🍑</div>
-                    <div class="bar-container"><div class="bar" id="bar-${id}"></div></div>
-                </div>
-                <div class="downloads-list" id="downloads-${id}" style="display:none;">
-                    <h1 style="margin-bottom:20px;">Descargas</h1>
-                    <div class="download-item">
-                        <div class="file-icon">📄</div>
-                        <div class="file-info">
-                            <div class="file-name">Goger_Setup.exe</div>
-                            <div class="file-progress"><div class="progress-fill" style="width: 100%"></div></div>
-                            <small>Completado - 45.2 MB</small>
-                        </div>
-                    </div>
-                    <div class="download-item">
-                        <div class="file-icon">🍑</div>
-                        <div class="file-info">
-                            <div class="file-name">Imagen_Durazno_HD.png</div>
-                            <div class="file-progress"><div class="progress-fill" style="width: 35%"></div></div>
-                            <small>Descargando... (1.2 MB / 4.0 MB)</small>
-                        </div>
-                    </div>
+                    <div class="bar-bg"><div class="bar-fill" id="bar-${id}"></div></div>
+                    <p style="margin-top:10px;">¡Pela el durazno!</p>
                 </div>
             `;
-            document.getElementById('main-view').appendChild(view);
+            document.getElementById('main-content').appendChild(view);
             switchTab(id);
         }
 
-        function handleInput(event, id) {
+        function handleSearch(event, id) {
             if (event.key === 'Enter') {
-                const query = event.target.value.toLowerCase();
-                const home = document.getElementById(`home-${id}`);
-                const tabTitle = document.querySelector(`#btn-${id} span`);
-
-                if (query === 'descargas' || query === 'downloads') {
-                    // Abrir lista de descargas
-                    home.style.display = 'none';
-                    document.getElementById(`downloads-${id}`).style.display = 'block';
-                    tabTitle.innerText = "Descargas";
-                } 
-                else if (!navigator.onLine) {
-                    // Modo Juego
-                    home.style.display = 'none';
+                const query = event.target.value;
+                if (!navigator.onLine) {
+                    document.getElementById(`home-${id}`).style.display = 'none';
                     document.getElementById(`game-${id}`).style.display = 'flex';
-                } 
-                else {
-                    // Ir a Bing
-                    const frame = document.getElementById(`frame-${id}`);
-                    tabTitle.innerText = query;
-                    home.style.display = 'none';
-                    frame.style.display = 'block';
-                    frame.src = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+                } else {
+                    showGogerResults(id, query);
                 }
             }
         }
 
-        // Lógica Durazno
-        let scores = {};
+        function showGogerResults(id, q) {
+            document.getElementById(`home-${id}`).style.display = 'none';
+            document.getElementById(`results-${id}`).style.display = 'block';
+            document.getElementById(`q-text-${id}`).innerText = q;
+            document.querySelector(`#tab-btn-${id} span`).innerText = q;
+
+            // Simulación de búsqueda interna
+            const list = document.getElementById(`res-list-${id}`);
+            list.innerHTML = `
+                <div class="result-item">
+                    <h3>${q} - Wikipedia, la enciclopedia de Goger</h3>
+                    <p>Información detallada sobre ${q} encontrada dentro de la red privada de Goger. Navegación 100% segura.</p>
+                </div>
+                <div class="result-item">
+                    <h3>Noticias actuales sobre ${q}</h3>
+                    <p>Hace 2 horas - Goger News: Las últimas novedades y tendencias relacionadas con tu búsqueda.</p>
+                </div>
+                <div class="result-item">
+                    <h3>Descargar contenido de ${q}</h3>
+                    <p onclick="addSimDownload('${q}.zip')" style="color:green; cursor:pointer;">📥 Click aquí para descargar archivo relacionado</p>
+                </div>
+            `;
+        }
+
+        function addSimDownload(name) {
+            document.getElementById('dlEmpty').style.display = 'none';
+            const item = document.createElement('div');
+            item.style.marginBottom = "10px";
+            item.innerHTML = `<b>${name}</b><br><small>Completado</small><hr>`;
+            document.getElementById('dlList').prepend(item);
+            toggleDownloads();
+        }
+
+        let pCount = {};
         function peelPeach(id) {
-            scores[id] = (scores[id] || 0) + 10;
-            document.getElementById(`bar-${id}`).style.width = scores[id] + "%";
-            if (scores[id] >= 100) { alert("¡Durazno pelado!"); scores[id] = 0; document.getElementById(`bar-${id}`).style.width = "0%"; }
+            pCount[id] = (pCount[id] || 0) + 10;
+            document.getElementById(`bar-${id}`).style.width = pCount[id] + "%";
+            if(pCount[id] >= 100) { alert("¡Durazno pelado en Goger!"); pCount[id] = 0; document.getElementById(`bar-${id}`).style.width = "0%"; }
         }
 
         function switchTab(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`view-${id}`).classList.add('active');
-            document.getElementById(`btn-${id}`).classList.add('active');
+            document.getElementById(`tab-btn-${id}`).classList.add('active');
         }
 
         function closeTab(id) {
             document.getElementById(`view-${id}`).remove();
-            document.getElementById(`btn-${id}`).remove();
-            if(!document.querySelector('.tab')) createNewTab();
-            else switchTab(document.querySelector('.tab').id.split('-')[1]);
+            document.getElementById(`tab-btn-${id}`).remove();
+            if(!document.querySelector('.tab')) addNewTab();
+            else switchTab(document.querySelector('.tab').id.split('-')[2]);
         }
 
-        createNewTab();
+        addNewTab();
     </script>
 </body>
 </html>

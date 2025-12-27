@@ -2,207 +2,173 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goger - Navegador Oficial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Goger Browser Pro</title>
     <style>
         :root {
             --goger-blue: #4285F4;
-            --goger-red: #EA4335;
-            --goger-yellow: #FBBC05;
-            --goger-green: #34A853;
-            --bg-tabs: #dee1e6;
+            --header-bg: #dee1e6;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        body { background: #f1f3f4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* BARRA DE PESTAÑAS Y HERRAMIENTAS */
-        .header { background: var(--bg-tabs); display: flex; align-items: center; padding: 8px 10px 0; gap: 5px; border-bottom: 1px solid #ccc; }
-        .tab-container { display: flex; gap: 4px; overflow-x: auto; flex-grow: 1; scrollbar-width: none; }
-        .tab-container::-webkit-scrollbar { display: none; }
+        /* HEADER */
+        .app-header { background: var(--header-bg); display: flex; align-items: center; padding: 8px 10px 0; gap: 5px; border-bottom: 1px solid #bcbcbc; }
+        .tabs-scroll { display: flex; gap: 4px; overflow-x: auto; flex-grow: 1; scrollbar-width: none; }
+        .tabs-scroll::-webkit-scrollbar { display: none; }
 
         .tab { 
-            background: #bdc1c6; padding: 10px 18px; border-radius: 8px 8px 0 0; 
-            font-size: 13px; min-width: 140px; cursor: pointer; border: none;
+            background: #bdc1c6; padding: 10px 15px; border-radius: 8px 8px 0 0; 
+            font-size: 12px; min-width: 120px; cursor: pointer; border: none;
             display: flex; justify-content: space-between; align-items: center;
         }
         .tab.active { background: white; font-weight: bold; }
+        .close-btn { margin-left: 8px; font-size: 14px; opacity: 0.6; }
+
+        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px 10px; color: #5f6368; }
+
+        /* CONTENIDO */
+        #content-wrapper { flex-grow: 1; position: relative; }
+        .view { display: none; width: 100%; height: 100%; overflow: hidden; }
+        .view.active { display: flex; flex-direction: column; }
+
+        /* HOME GOGER CON TU LOGO */
+        .home-screen { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: white; }
         
-        .btn-tool { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px 12px; color: #5f6368; }
-
-        /* ÁREA DE CONTENIDO */
-        #main-content { flex-grow: 1; background: white; position: relative; overflow-y: auto; }
-        .view { display: none; width: 100%; height: 100%; flex-direction: column; }
-        .view.active { display: flex; }
-
-        /* PANTALLA DE INICIO (GOGER HOME) */
-        .home { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .logo { font-size: 70px; font-weight: bold; margin-bottom: 25px; letter-spacing: -3px; user-select: none; }
-        .logo span:nth-child(1) { color: var(--goger-blue); }
-        .logo span:nth-child(2) { color: var(--goger-red); }
-        .logo span:nth-child(3) { color: var(--goger-yellow); }
-        .logo span:nth-child(4) { color: var(--goger-green); }
-        .logo span:nth-child(5) { color: var(--goger-red); }
-
-        .search-box { 
-            width: 90%; max-width: 580px; padding: 15px 25px; 
-            border-radius: 30px; border: 1px solid #dfe1e5; outline: none; 
-            box-shadow: 0 1px 6px rgba(0,0,0,0.1); font-size: 16px;
+        /* Ajuste de tu Logo */
+        .goger-logo { 
+            width: 250px; 
+            max-width: 80%; 
+            height: auto; 
+            margin-bottom: 30px;
+            user-select: none;
         }
 
-        /* RESULTADOS INTERNOS DE GOGER */
-        .results-container { padding: 30px; display: none; }
-        .result-item { margin-bottom: 25px; }
-        .result-item h3 { color: #1a0dab; font-size: 18px; cursor: pointer; margin-bottom: 5px; }
-        .result-item p { color: #4d5156; font-size: 14px; line-height: 1.4; }
+        .search-bar { 
+            width: 100%; max-width: 500px; padding: 14px 25px; 
+            border-radius: 30px; border: 1px solid #dfe1e5; outline: none; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); font-size: 16px;
+        }
 
-        /* JUEGO DEL DURAZNO (OFFLINE) */
-        .game-view { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #fffaf0; }
-        .peach { font-size: 100px; cursor: pointer; transition: transform 0.1s; user-select: none; }
-        .peach:active { transform: scale(0.9); }
-        .bar-bg { width: 200px; height: 15px; background: #eee; border-radius: 10px; margin-top: 20px; overflow: hidden; }
-        .bar-fill { width: 0%; height: 100%; background: orange; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* PANEL DE DESCARGAS */
-        .dl-panel {
-            position: absolute; top: 0; right: 0; width: 300px; height: 100%;
-            background: white; border-left: 1px solid #ddd; box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-            display: none; flex-direction: column; z-index: 100;
+        /* PANEL DESCARGAS */
+        #downloads-panel {
+            position: absolute; top: 0; right: 0; width: 100%; max-width: 300px; height: 100%;
+            background: white; border-left: 1px solid #ddd; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            display: none; flex-direction: column; z-index: 1000;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="tab-container" id="tabBar"></div>
-        <button class="btn-tool" onclick="addNewTab()">+</button>
-        <button class="btn-tool" onclick="toggleDownloads()">📥</button>
+    <div class="app-header">
+        <div class="tabs-scroll" id="tabsBar"></div>
+        <button class="nav-btn" onclick="createNewTab()">+</button>
+        <button class="nav-btn" onclick="toggleDownloads()">📥</button>
     </div>
 
-    <div id="main-content">
-        <div class="dl-panel" id="dlPanel">
+    <div id="content-wrapper">
+        <div id="downloads-panel">
             <div style="padding:15px; border-bottom:1px solid #eee; font-weight:bold; display:flex; justify-content:space-between;">
-                Descargas <span onclick="toggleDownloads()" style="cursor:pointer">×</span>
+                Descargas Goger <span onclick="toggleDownloads()" style="cursor:pointer">×</span>
             </div>
-            <div id="dlList" style="padding:10px; font-size:12px;">
-                <p id="dlEmpty" style="color:#999; text-align:center; margin-top:20px;">No hay descargas</p>
-            </div>
+            <div id="dlList" style="padding:15px; font-size:13px;"></div>
         </div>
     </div>
 
     <script>
-        let tabId = 0;
+        let tabs = JSON.parse(localStorage.getItem('goger_tabs')) || [];
 
-        function toggleDownloads() {
-            const p = document.getElementById('dlPanel');
-            p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+        function saveState() {
+            localStorage.setItem('goger_tabs', JSON.stringify(tabs));
         }
 
-        function addNewTab() {
-            tabId++;
-            const id = tabId;
+        function toggleDownloads() {
+            const panel = document.getElementById('downloads-panel');
+            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+        }
 
-            // Botón pestaña
-            const btn = document.createElement('button');
-            btn.className = 'tab';
-            btn.id = `tab-btn-${id}`;
-            btn.onclick = () => switchTab(id);
-            btn.innerHTML = `<span>Nueva pestaña</span> <b onclick="event.stopPropagation(); closeTab(${id})">×</b>`;
-            document.getElementById('tabBar').appendChild(btn);
-
-            // Vista pestaña
-            const view = document.createElement('div');
-            view.className = 'view';
-            view.id = `view-${id}`;
-            view.innerHTML = `
-                <div class="home" id="home-${id}">
-                    <div class="logo"><span>G</span><span>o</span><span>g</span><span>e</span><span>r</span></div>
-                    <input type="text" class="search-box" placeholder="¿Qué quieres buscar?" onkeypress="handleSearch(event, ${id})">
-                    <p style="margin-top:20px; color:#777; font-size:14px;">El buscador más rápido de la red</p>
-                </div>
-                <div class="results-container" id="results-${id}">
-                    <h2 style="margin-bottom:20px; font-size:16px;">Resultados para: <span id="q-text-${id}"></span></h2>
-                    <div id="res-list-${id}"></div>
-                </div>
-                <div class="game-view" id="game-${id}">
-                    <h2>⚠️ Sin Internet</h2>
-                    <div class="peach" onclick="peelPeach(${id})">🍑</div>
-                    <div class="bar-bg"><div class="bar-fill" id="bar-${id}"></div></div>
-                    <p style="margin-top:10px;">¡Pela el durazno!</p>
-                </div>
-            `;
-            document.getElementById('main-content').appendChild(view);
+        function createNewTab(url = '', title = 'Inicio') {
+            const id = Date.now();
+            tabs.push({ id, url, title });
+            renderTabs();
             switchTab(id);
+            saveState();
+        }
+
+        function renderTabs() {
+            const bar = document.getElementById('tabsBar');
+            const wrapper = document.getElementById('content-wrapper');
+            const dlPanel = document.getElementById('downloads-panel');
+            
+            bar.innerHTML = '';
+            wrapper.innerHTML = '';
+            wrapper.appendChild(dlPanel);
+
+            tabs.forEach(tab => {
+                const btn = document.createElement('div');
+                btn.className = 'tab';
+                btn.id = `btn-${tab.id}`;
+                btn.onclick = () => switchTab(tab.id);
+                btn.innerHTML = `<span>${tab.title}</span> <span class="close-btn" onclick="event.stopPropagation(); removeTab(${tab.id})">×</span>`;
+                bar.appendChild(btn);
+
+                const view = document.createElement('div');
+                view.className = 'view';
+                view.id = `view-${tab.id}`;
+                
+                if (tab.url === '') {
+                    view.innerHTML = `
+                        <div class="home-screen">
+                            <img src="https://i.ibb.co/pvvR9tf2/5-sin-t-tulo-20251227114906.png" class="goger-logo" alt="Goger Logo">
+                            <input type="text" class="search-bar" placeholder="Buscar en la red..." onkeypress="handleSearch(event, ${tab.id})">
+                        </div>`;
+                } else {
+                    view.innerHTML = `<iframe src="${tab.url}"></iframe>`;
+                }
+                wrapper.appendChild(view);
+            });
         }
 
         function handleSearch(event, id) {
             if (event.key === 'Enter') {
                 const query = event.target.value;
-                if (!navigator.onLine) {
-                    document.getElementById(`home-${id}`).style.display = 'none';
-                    document.getElementById(`game-${id}`).style.display = 'flex';
-                } else {
-                    showGogerResults(id, query);
-                }
+                const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+                const tab = tabs.find(t => t.id === id);
+                tab.url = url;
+                tab.title = query.substring(0, 10);
+                saveState();
+                renderTabs();
+                switchTab(id);
             }
-        }
-
-        function showGogerResults(id, q) {
-            document.getElementById(`home-${id}`).style.display = 'none';
-            document.getElementById(`results-${id}`).style.display = 'block';
-            document.getElementById(`q-text-${id}`).innerText = q;
-            document.querySelector(`#tab-btn-${id} span`).innerText = q;
-
-            // Simulación de búsqueda interna
-            const list = document.getElementById(`res-list-${id}`);
-            list.innerHTML = `
-                <div class="result-item">
-                    <h3>${q} - Wikipedia, la enciclopedia de Goger</h3>
-                    <p>Información detallada sobre ${q} encontrada dentro de la red privada de Goger. Navegación 100% segura.</p>
-                </div>
-                <div class="result-item">
-                    <h3>Noticias actuales sobre ${q}</h3>
-                    <p>Hace 2 horas - Goger News: Las últimas novedades y tendencias relacionadas con tu búsqueda.</p>
-                </div>
-                <div class="result-item">
-                    <h3>Descargar contenido de ${q}</h3>
-                    <p onclick="addSimDownload('${q}.zip')" style="color:green; cursor:pointer;">📥 Click aquí para descargar archivo relacionado</p>
-                </div>
-            `;
-        }
-
-        function addSimDownload(name) {
-            document.getElementById('dlEmpty').style.display = 'none';
-            const item = document.createElement('div');
-            item.style.marginBottom = "10px";
-            item.innerHTML = `<b>${name}</b><br><small>Completado</small><hr>`;
-            document.getElementById('dlList').prepend(item);
-            toggleDownloads();
-        }
-
-        let pCount = {};
-        function peelPeach(id) {
-            pCount[id] = (pCount[id] || 0) + 10;
-            document.getElementById(`bar-${id}`).style.width = pCount[id] + "%";
-            if(pCount[id] >= 100) { alert("¡Durazno pelado en Goger!"); pCount[id] = 0; document.getElementById(`bar-${id}`).style.width = "0%"; }
         }
 
         function switchTab(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(`view-${id}`).classList.add('active');
-            document.getElementById(`tab-btn-${id}`).classList.add('active');
+            const targetView = document.getElementById(`view-${id}`);
+            const targetBtn = document.getElementById(`btn-${id}`);
+            if(targetView) targetView.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
         }
 
-        function closeTab(id) {
-            document.getElementById(`view-${id}`).remove();
-            document.getElementById(`tab-btn-${id}`).remove();
-            if(!document.querySelector('.tab')) addNewTab();
-            else switchTab(document.querySelector('.tab').id.split('-')[2]);
+        function removeTab(id) {
+            tabs = tabs.filter(t => t.id !== id);
+            saveState();
+            if (tabs.length === 0) createNewTab();
+            else {
+                renderTabs();
+                switchTab(tabs[tabs.length - 1].id);
+            }
         }
 
-        addNewTab();
+        if (tabs.length === 0) createNewTab();
+        else {
+            renderTabs();
+            switchTab(tabs[tabs.length - 1].id);
+        }
     </script>
 </body>
 </html>

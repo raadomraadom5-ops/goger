@@ -2,128 +2,143 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Goger Browser Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goger Browser Professional</title>
     <style>
         :root {
             --goger-blue: #4285F4;
-            --header-bg: #dee1e6;
+            --header-bg: #f1f3f4;
+            --tab-active: #ffffff;
+            --text-color: #3c4043;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: var(--text-color); }
 
-        /* HEADER */
-        .app-header { background: var(--header-bg); display: flex; align-items: center; padding: 8px 10px 0; gap: 5px; border-bottom: 1px solid #bcbcbc; }
+        /* HEADER Y PESTAÑAS */
+        .app-header { background: #dee1e6; display: flex; flex-direction: column; border-bottom: 1px solid #bcbcbc; }
+        .tabs-row { display: flex; align-items: center; padding: 8px 10px 0; gap: 5px; }
         .tabs-scroll { display: flex; gap: 4px; overflow-x: auto; flex-grow: 1; scrollbar-width: none; }
-        .tabs-scroll::-webkit-scrollbar { display: none; }
-
         .tab { 
-            background: #bdc1c6; padding: 10px 15px; border-radius: 8px 8px 0 0; 
-            font-size: 12px; min-width: 120px; cursor: pointer; border: none;
-            display: flex; justify-content: space-between; align-items: center;
+            background: #bdc1c6; padding: 8px 15px; border-radius: 8px 8px 0 0; 
+            font-size: 12px; min-width: 150px; cursor: pointer; display: flex; justify-content: space-between; 
         }
         .tab.active { background: white; font-weight: bold; }
-        .close-btn { margin-left: 8px; font-size: 14px; opacity: 0.6; }
 
-        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px 10px; color: #5f6368; }
+        /* BARRA DE HERRAMIENTAS */
+        .nav-controls { background: white; display: flex; align-items: center; padding: 5px 10px; gap: 8px; border-top: 1px solid #ddd; }
+        .address-bar { flex-grow: 1; background: #f1f3f4; border-radius: 20px; padding: 6px 15px; border: 1px solid #dfe1e5; outline: none; }
+        .btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; border-radius: 50%; }
+        .btn:hover { background: rgba(0,0,0,0.1); }
 
-        /* CONTENIDO */
+        /* MENÚ DESPLEGABLE (ESTILO LA IMAGEN QUE SUBISTE) */
+        .menu-container { position: relative; }
+        .dropdown-menu { 
+            position: absolute; top: 35px; right: 0; width: 280px; 
+            background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            display: none; flex-direction: column; padding: 10px 0; z-index: 2000;
+        }
+        .menu-item { 
+            padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .menu-item:hover { background: #f1f3f4; }
+        .menu-item i { width: 20px; font-style: normal; margin-right: 10px; }
+        .shortcut { color: #888; font-size: 12px; }
+        .separator { height: 1px; background: #eee; margin: 5px 0; }
+
+        /* VISTA PRINCIPAL */
         #content-wrapper { flex-grow: 1; position: relative; }
-        .view { display: none; width: 100%; height: 100%; overflow: hidden; }
-        .view.active { display: flex; flex-direction: column; }
-
-        /* HOME GOGER CON TU LOGO */
-        .home-screen { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: white; }
-        
-        /* Ajuste de tu Logo */
-        .goger-logo { 
-            width: 250px; 
-            max-width: 80%; 
-            height: auto; 
-            margin-bottom: 30px;
-            user-select: none;
-        }
-
-        .search-bar { 
-            width: 100%; max-width: 500px; padding: 14px 25px; 
-            border-radius: 30px; border: 1px solid #dfe1e5; outline: none; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); font-size: 16px;
-        }
-
+        .view { display: none; width: 100%; height: 100%; }
+        .view.active { display: block; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* PANEL DESCARGAS */
-        #downloads-panel {
-            position: absolute; top: 0; right: 0; width: 100%; max-width: 300px; height: 100%;
-            background: white; border-left: 1px solid #ddd; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-            display: none; flex-direction: column; z-index: 1000;
-        }
+        .home-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .goger-logo { width: 250px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <div class="app-header">
-        <div class="tabs-scroll" id="tabsBar"></div>
-        <button class="nav-btn" onclick="createNewTab()">+</button>
-        <button class="nav-btn" onclick="toggleDownloads()">📥</button>
-    </div>
-
-    <div id="content-wrapper">
-        <div id="downloads-panel">
-            <div style="padding:15px; border-bottom:1px solid #eee; font-weight:bold; display:flex; justify-content:space-between;">
-                Descargas Goger <span onclick="toggleDownloads()" style="cursor:pointer">×</span>
+        <div class="tabs-row">
+            <div class="tabs-scroll" id="tabsBar"></div>
+            <button class="btn" onclick="createNewTab()">+</button>
+        </div>
+        <div class="nav-controls">
+            <button class="btn" onclick="reloadTab()">🔄</button>
+            <input type="text" class="address-bar" id="globalSearch" placeholder="Busca en Bing o escribe URL..." onkeypress="handleSearch(event)">
+            
+            <div class="menu-container">
+                <button class="btn" onclick="toggleMenu()">⋮</button>
+                <div class="dropdown-menu" id="mainMenu">
+                    <div class="menu-item" onclick="createNewTab()"><i>📄</i> Nueva pestaña <span class="shortcut">Ctrl+T</span></div>
+                    <div class="menu-item"><i>🔲</i> Nueva ventana <span class="shortcut">Ctrl+N</span></div>
+                    <div class="separator"></div>
+                    <div class="menu-item"><i>⭐</i> Favoritos <span class="shortcut">Ctrl+Mayús+O</span></div>
+                    <div class="menu-item"><i>🕒</i> Historial <span class="shortcut">Ctrl+H</span></div>
+                    <div class="menu-item"><i>📥</i> Descargas <span class="shortcut">Ctrl+J</span></div>
+                    <div class="separator"></div>
+                    <div class="menu-item" style="color: var(--goger-blue); font-weight: bold;" onclick="makeExeAction()">
+                        <i>⚙️</i> Crear EXE (Web2App)
+                    </div>
+                    <div class="menu-item"><i>🛠️</i> Más herramientas <span>▶</span></div>
+                </div>
             </div>
-            <div id="dlList" style="padding:15px; font-size:13px;"></div>
         </div>
     </div>
 
+    <div id="content-wrapper"></div>
+
     <script>
-        let tabs = JSON.parse(localStorage.getItem('goger_tabs')) || [];
+        let tabs = JSON.parse(localStorage.getItem('goger_pro_tabs')) || [];
+        let activeTabId = null;
 
-        function saveState() {
-            localStorage.setItem('goger_tabs', JSON.stringify(tabs));
+        function toggleMenu() {
+            const m = document.getElementById('mainMenu');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        function toggleDownloads() {
-            const panel = document.getElementById('downloads-panel');
-            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+        // FUNCIÓN: COPIA LINK Y ENVÍA A WEB2APP
+        function makeExeAction() {
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            const urlToCopy = (currentTab && currentTab.url) ? currentTab.url : window.location.href;
+            
+            navigator.clipboard.writeText(urlToCopy).then(() => {
+                alert("Link copiado: " + urlToCopy + "\nAbriendo Web2App...");
+                window.open("https://www.web2app.vip/", "_blank");
+            });
+            toggleMenu();
         }
 
-        function createNewTab(url = '', title = 'Inicio') {
+        function createNewTab(url = '', title = 'Nueva pestaña') {
             const id = Date.now();
             tabs.push({ id, url, title });
-            renderTabs();
+            render();
             switchTab(id);
-            saveState();
+            localStorage.setItem('goger_pro_tabs', JSON.stringify(tabs));
         }
 
-        function renderTabs() {
+        function render() {
             const bar = document.getElementById('tabsBar');
             const wrapper = document.getElementById('content-wrapper');
-            const dlPanel = document.getElementById('downloads-panel');
-            
-            bar.innerHTML = '';
-            wrapper.innerHTML = '';
-            wrapper.appendChild(dlPanel);
+            bar.innerHTML = ''; wrapper.innerHTML = '';
 
             tabs.forEach(tab => {
                 const btn = document.createElement('div');
-                btn.className = 'tab';
-                btn.id = `btn-${tab.id}`;
+                btn.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
                 btn.onclick = () => switchTab(tab.id);
-                btn.innerHTML = `<span>${tab.title}</span> <span class="close-btn" onclick="event.stopPropagation(); removeTab(${tab.id})">×</span>`;
+                btn.innerHTML = `${tab.title} <span onclick="event.stopPropagation(); removeTab(${tab.id})">×</span>`;
                 bar.appendChild(btn);
 
                 const view = document.createElement('div');
-                view.className = 'view';
+                view.className = 'view' + (tab.id === activeTabId ? ' active' : '');
                 view.id = `view-${tab.id}`;
                 
-                if (tab.url === '') {
+                if (!tab.url) {
                     view.innerHTML = `
                         <div class="home-screen">
-                            <img src="https://i.ibb.co/pvvR9tf2/5-sin-t-tulo-20251227114906.png" class="goger-logo" alt="Goger Logo">
-                            <input type="text" class="search-bar" placeholder="Buscar en la red..." onkeypress="handleSearch(event, ${tab.id})">
+                            <img src="https://i.ibb.co/pvvR9tf2/5-sin-t-tulo-20251227114906.png" class="goger-logo">
+                            <input type="text" class="address-bar" style="width: 400px; padding: 12px" placeholder="Busca en Bing o escribe 'descargas'..." onkeypress="handleSearch(event)">
                         </div>`;
                 } else {
                     view.innerHTML = `<iframe src="${tab.url}"></iframe>`;
@@ -132,43 +147,42 @@
             });
         }
 
-        function handleSearch(event, id) {
+        function handleSearch(event) {
             if (event.key === 'Enter') {
-                const query = event.target.value;
-                const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
-                const tab = tabs.find(t => t.id === id);
-                tab.url = url;
-                tab.title = query.substring(0, 10);
-                saveState();
-                renderTabs();
-                switchTab(id);
+                const q = event.target.value;
+                const tab = tabs.find(t => t.id === activeTabId);
+                tab.url = q.includes('://') ? q : `https://www.bing.com/search?q=${encodeURIComponent(q)}`;
+                tab.title = q.substring(0, 15);
+                render();
+                localStorage.setItem('goger_pro_tabs', JSON.stringify(tabs));
             }
         }
 
         function switchTab(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const targetView = document.getElementById(`view-${id}`);
-            const targetBtn = document.getElementById(`btn-${id}`);
-            if(targetView) targetView.classList.add('active');
-            if(targetBtn) targetBtn.classList.add('active');
+            activeTabId = id;
+            render();
+            const tab = tabs.find(t => t.id === id);
+            document.getElementById('globalSearch').value = tab.url || '';
         }
 
         function removeTab(id) {
             tabs = tabs.filter(t => t.id !== id);
-            saveState();
             if (tabs.length === 0) createNewTab();
-            else {
-                renderTabs();
-                switchTab(tabs[tabs.length - 1].id);
+            else switchTab(tabs[0].id);
+            localStorage.setItem('goger_pro_tabs', JSON.stringify(tabs));
+        }
+
+        function reloadTab() { render(); }
+
+        // Cerrar menú si haces clic fuera
+        window.onclick = function(event) {
+            if (!event.target.matches('.btn')) {
+                document.getElementById('mainMenu').style.display = 'none';
             }
         }
 
         if (tabs.length === 0) createNewTab();
-        else {
-            renderTabs();
-            switchTab(tabs[tabs.length - 1].id);
-        }
+        else switchTab(tabs[0].id);
     </script>
 </body>
 </html>
